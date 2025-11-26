@@ -74,7 +74,7 @@ export default function CollectionDetail() {
   };
 
   const handleWhatsAppClick = () => {
-    window.open(`${collection.whatsappLink}?text=${WHATSAPP_MESSAGE_TEMPLATES[collection.id]}`, '_blank');
+    window.open(collection.whatsappLink, '_blank');
   };
 
   return (
