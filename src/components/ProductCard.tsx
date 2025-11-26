@@ -15,8 +15,8 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
   const collection = COLLECTIONS.find(c => c.id === product.collection);
   
   const handleWhatsAppClick = () => {
-    const message = `${WHATSAPP_MESSAGE_TEMPLATES[product.collection]}%0A%0AProducto: ${product.subcategory}%0ACódigo: ${product.code}%0ATalla: ${product.size}%0APrecio: ${formatPrice(product.price)}`;
-    window.open(`${collection?.whatsappLink}?text=${message}`, '_blank');
+    const productInfo = `%0A%0AProducto: ${product.subcategory}%0ACódigo: ${product.code}%0ATalla: ${product.size}%0APrecio: ${formatPrice(product.price)}`;
+    window.open(`${collection?.whatsappLink}${productInfo}`, '_blank');
   };
 
   return (
