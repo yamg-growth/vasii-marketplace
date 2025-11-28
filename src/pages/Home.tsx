@@ -3,7 +3,7 @@ import { COLLECTIONS } from '@/data/collections';
 import { CollectionCard } from '@/components/CollectionCard';
 import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
-import { MOCK_PRODUCTS } from '@/data/mockProducts';
+import { loadAllProducts } from '@/data/loadProducts';
 import { Product } from '@/types/product';
 import { ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -13,13 +13,15 @@ export default function Home() {
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
 
   useEffect(() => {
-    // Get featured and bestseller products
-    setFeaturedProducts(MOCK_PRODUCTS.slice(0, 6));
-    setBestSellers(MOCK_PRODUCTS.slice(0, 8));
+    // Load products from inventory
+    const allProducts = loadAllProducts();
+    setFeaturedProducts(allProducts.slice(0, 6));
+    setBestSellers(allProducts.slice(0, 8));
   }, []);
 
   const getCollectionProductCount = (collectionId: string) => {
-    return MOCK_PRODUCTS.filter(p => p.collection === collectionId).length;
+    const allProducts = loadAllProducts();
+    return allProducts.filter(p => p.collection === collectionId).length;
   };
 
   return (

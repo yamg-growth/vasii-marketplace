@@ -1,30 +1,30 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductFilters, ProductFilters as Filters } from '@/components/ProductFilters';
-import { MOCK_PRODUCTS, getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/mockProducts';
+import { loadAllProducts, getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/loadProducts';
 import { Product, FilterOptions } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Filter, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 export default function Catalog() {
-  const [products] = useState<Product[]>(MOCK_PRODUCTS);
+  const [products] = useState<Product[]>(loadAllProducts());
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     subcategories: [],
     sizes: [],
-    priceRange: getPriceRange(MOCK_PRODUCTS),
+    priceRange: getPriceRange(),
     collections: []
   });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const availableFilters: FilterOptions = useMemo(() => ({
-    categories: getUniqueCategories(products),
-    subcategories: getUniqueSubcategories(products),
-    sizes: getUniqueSizes(products),
-    priceRange: getPriceRange(products),
+    categories: getUniqueCategories(),
+    subcategories: getUniqueSubcategories(),
+    sizes: getUniqueSizes(),
+    priceRange: getPriceRange(),
     collections: []
-  }), [products]);
+  }), []);
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
@@ -121,7 +121,7 @@ export default function Catalog() {
                     categories: [],
                     subcategories: [],
                     sizes: [],
-                    priceRange: getPriceRange(products),
+                    priceRange: getPriceRange(),
                     collections: []
                   })}
                 >
