@@ -8,86 +8,94 @@ export function classifyProductCollection(
   subcategory: string,
   box: string
 ): Collection {
-  const lowerCategory = category.toLowerCase();
-  const lowerSubcategory = subcategory.toLowerCase();
-  const lowerBox = box.toLowerCase();
-  
-  // Correct TENIS -> TEENS
-  if (lowerCategory.includes('tenis') || lowerBox.includes('tenis')) {
+  const categoryLower = category.toLowerCase();
+  const subcategoryLower = subcategory.toLowerCase();
+  const boxLower = box.toLowerCase();
+
+  // Fix TENIS -> TEENS
+  if (categoryLower.includes('tenis') || boxLower.includes('tenis')) {
     return 'el-bazar';
   }
-  
-  // GLAMOUR & FIESTA - Dresses and two-pieces
+
+  // EL BAZAR: Men, Baby/Maternity, Sport, Teens
   if (
-    lowerBox.includes('vestido') ||
-    lowerBox.includes('cocktail') ||
-    lowerSubcategory.includes('dress') ||
-    lowerBox.includes('dos piezas') ||
-    lowerBox.includes('two piece')
+    categoryLower.includes('men') ||
+    categoryLower.includes('baby') ||
+    categoryLower.includes('maternity') ||
+    categoryLower.includes('teens') ||
+    categoryLower.includes('sport') ||
+    subcategoryLower.includes('sport')
   ) {
-    // Check if it's plus size
-    if (
-      lowerSubcategory.includes('plus') ||
-      lowerBox.includes('plus')
-    ) {
-      return 'curvy-edition';
-    }
-    return 'glamour-fiesta';
+    return 'el-bazar';
   }
-  
-  // CURVY EDITION - All plus size items
+
+  // Check if it's plus size first
+  const isPlusSize = isProductPlusSize(category, subcategory, box);
+
+  // GLAMOUR & FIESTA: Dresses, jumpsuits, two-pieces (non-plus)
   if (
-    lowerSubcategory.includes('plus') ||
-    lowerBox.includes('plus') ||
-    lowerCategory.includes('plus')
+    subcategoryLower.includes('vestido') ||
+    subcategoryLower.includes('dress') ||
+    subcategoryLower.includes('dos piezas') ||
+    subcategoryLower.includes('two piece') ||
+    subcategoryLower.includes('cocktail') ||
+    subcategoryLower.includes('jumpsuit') ||
+    subcategoryLower.includes('mono') ||
+    boxLower.includes('vestido') ||
+    boxLower.includes('cocktail') ||
+    boxLower.includes('dos piezas')
   ) {
+    return isPlusSize ? 'curvy-edition' : 'glamour-fiesta';
+  }
+
+  // CURVY EDITION: All plus size items
+  if (isPlusSize) {
     return 'curvy-edition';
   }
-  
-  // WORK & CASUAL - Blusas, cardigans, jeans, camisetas
+
+  // WINTER: Coats, Jackets, Sweaters, Cardigans, Abrigos
   if (
-    lowerBox.includes('blusa') ||
-    lowerBox.includes('cardigan') ||
-    lowerBox.includes('jean') ||
-    lowerBox.includes('camiseta') ||
-    lowerBox.includes('top') ||
-    lowerSubcategory.includes('blouse') ||
-    lowerSubcategory.includes('cardigan') ||
-    lowerSubcategory.includes('sweater') ||
-    lowerSubcategory.includes('jeans') ||
-    lowerSubcategory.includes('t-shirt') ||
-    lowerSubcategory.includes('shirt')
-  ) {
-    return 'work-casual';
-  }
-  
-  // WINTER - Coats, Jackets, Abrigos
-  if (
-    lowerBox.includes('coat') ||
-    lowerBox.includes('jacket') ||
-    lowerBox.includes('abrigo') ||
-    lowerSubcategory.includes('coat') ||
-    lowerSubcategory.includes('jacket') ||
-    lowerSubcategory.includes('outerwear')
+    subcategoryLower.includes('coat') ||
+    subcategoryLower.includes('jacket') ||
+    subcategoryLower.includes('sweater') ||
+    subcategoryLower.includes('cardigan') ||
+    subcategoryLower.includes('abrigo') ||
+    boxLower.includes('coat') ||
+    boxLower.includes('jacket') ||
+    boxLower.includes('sweater') ||
+    boxLower.includes('cardigan')
   ) {
     return 'winter';
   }
-  
-  // EL BAZAR - Men, Baby, Maternity, Sport, Teens
+
+  // WORK & CASUAL: Blusas, Jeans, Camisetas, Tops, Blazers, Pantalones, etc.
   if (
-    lowerCategory.includes('men') ||
-    lowerCategory.includes('baby') ||
-    lowerCategory.includes('maternity') ||
-    lowerCategory.includes('kids') ||
-    lowerCategory.includes('teens') ||
-    lowerSubcategory.includes('sport') ||
-    lowerBox.includes('sport') ||
-    lowerBox.includes('teens')
+    subcategoryLower.includes('blusa') ||
+    subcategoryLower.includes('jean') ||
+    subcategoryLower.includes('camiseta') ||
+    subcategoryLower.includes('top') ||
+    subcategoryLower.includes('blazer') ||
+    subcategoryLower.includes('falda') ||
+    subcategoryLower.includes('skirt') ||
+    subcategoryLower.includes('pantalon') ||
+    subcategoryLower.includes('pant') ||
+    subcategoryLower.includes('short') ||
+    subcategoryLower.includes('legging') ||
+    subcategoryLower.includes('lingerie') ||
+    subcategoryLower.includes('bikini') ||
+    subcategoryLower.includes('pijama') ||
+    boxLower.includes('blusa') ||
+    boxLower.includes('jean') ||
+    boxLower.includes('camiseta')
   ) {
-    return 'el-bazar';
+    return 'work-casual';
   }
-  
-  // Default fallback
+
+  // Default to work-casual for women's items
+  if (categoryLower.includes('women')) {
+    return 'work-casual';
+  }
+
   return 'el-bazar';
 }
 
