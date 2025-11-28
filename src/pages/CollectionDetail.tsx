@@ -176,12 +176,27 @@ export default function CollectionDetail() {
             {/* Products Grid */}
             {filteredProducts.length === 0 ? (
               <div className="text-center py-20">
-                <p className="text-muted-foreground">
-                  No hay productos disponibles en esta colección
+                <h3 className="text-xl font-semibold text-foreground mb-2">
+                  No se encontraron productos
+                </h3>
+                <p className="text-muted-foreground mb-6">
+                  Intenta ajustar tus filtros
                 </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setFilters({
+                    categories: [],
+                    subcategories: [],
+                    sizes: [],
+                    priceRange: getPriceRange(),
+                    collections: []
+                  })}
+                >
+                  Limpiar filtros
+                </Button>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {filteredProducts.map(product => (
                   <ProductCard key={product.id} product={product} />
                 ))}

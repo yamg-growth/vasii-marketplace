@@ -20,7 +20,7 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 h-full flex flex-col">
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
       <div className="relative aspect-[3/4] overflow-hidden bg-muted">
         <img
           src={product.imageUrl}
@@ -29,20 +29,20 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
           loading="lazy"
         />
         {product.isPlus && (
-          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white border-0 text-xs">
-            Plus
+          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white border-0">
+            Plus Size
           </Badge>
         )}
         {product.stock <= 3 && product.stock > 0 && (
-          <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground text-xs">
-            ¡{product.stock} left!
+          <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground">
+            ¡Últimas {product.stock}!
           </Badge>
         )}
       </div>
       
-      <CardContent className="p-3 space-y-2 flex-1 flex flex-col">
+      <CardContent className="p-4 space-y-2">
         <div className="flex items-start justify-between gap-2">
-          <h3 className="font-medium text-sm text-foreground line-clamp-2 flex-1">
+          <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
             {product.subcategory}
           </h3>
           <Badge variant="outline" className="shrink-0 text-xs">
@@ -50,20 +50,38 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
           </Badge>
         </div>
         
-        <div className="flex items-baseline justify-between mt-auto">
-          <p className="text-xl font-bold text-primary">
+        <div className="flex items-center justify-between">
+          <p className="text-2xl font-bold text-primary">
             {formatPrice(product.price)}
           </p>
           <p className="text-xs text-muted-foreground">
-            {product.code}
+            Ref: {product.code}
           </p>
         </div>
+        
+        {collection && (
+          <Badge 
+            variant="secondary" 
+            className={`text-xs bg-gradient-to-r ${collection.color} text-white border-0`}
+          >
+            {collection.icon} {collection.name}
+          </Badge>
+        )}
       </CardContent>
       
-      <CardFooter className="p-3 pt-0 gap-2">
+      <CardFooter className="p-4 pt-0 gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={() => onViewDetails?.(product)}
+        >
+          <ShoppingBag className="h-4 w-4 mr-2" />
+          Ver detalles
+        </Button>
         <Button
           size="sm"
-          className="w-full"
+          className="flex-1"
           onClick={handleWhatsAppClick}
         >
           <MessageCircle className="h-4 w-4 mr-2" />
