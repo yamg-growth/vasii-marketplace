@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { COLLECTIONS, WHATSAPP_MESSAGE_TEMPLATES } from '@/data/collections';
+import { COLLECTIONS } from '@/data/collections';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductFilters, ProductFilters as Filters } from '@/components/ProductFilters';
-import { MOCK_PRODUCTS, getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/mockProducts';
+import { getProductsByCollection, getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/loadProducts';
 import { Product, FilterOptions } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +15,7 @@ export default function CollectionDetail() {
   const collection = COLLECTIONS.find(c => c.id === collectionId);
   
   const collectionProducts = useMemo(() => 
-    MOCK_PRODUCTS.filter(p => p.collection === collectionId),
+    getProductsByCollection(collectionId || ''),
     [collectionId]
   );
 
@@ -23,18 +23,18 @@ export default function CollectionDetail() {
     categories: [],
     subcategories: [],
     sizes: [],
-    priceRange: getPriceRange(collectionProducts),
+    priceRange: getPriceRange(),
     collections: []
   });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   const availableFilters: FilterOptions = useMemo(() => ({
-    categories: getUniqueCategories(collectionProducts),
-    subcategories: getUniqueSubcategories(collectionProducts),
-    sizes: getUniqueSizes(collectionProducts),
-    priceRange: getPriceRange(collectionProducts),
+    categories: getUniqueCategories(),
+    subcategories: getUniqueSubcategories(),
+    sizes: getUniqueSizes(),
+    priceRange: getPriceRange(),
     collections: []
-  }), [collectionProducts]);
+  }), []);
 
   const filteredProducts = useMemo(() => {
     return collectionProducts.filter(product => {
@@ -188,7 +188,7 @@ export default function CollectionDetail() {
                     categories: [],
                     subcategories: [],
                     sizes: [],
-                    priceRange: getPriceRange(collectionProducts),
+                    priceRange: getPriceRange(),
                     collections: []
                   })}
                 >
