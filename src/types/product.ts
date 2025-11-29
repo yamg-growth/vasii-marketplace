@@ -1,6 +1,7 @@
 export interface Product {
   id: string;
   code: string;
+  barCode?: string;
   category: string;
   subcategory: string;
   size: string;
