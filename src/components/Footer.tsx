@@ -1,9 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ShoppingBag, Instagram, Facebook, MessageCircle } from 'lucide-react';
-
 export function Footer() {
-  return (
-    <footer className="border-t bg-muted/30">
+  return <footer className="border-t bg-muted/30">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
@@ -13,7 +11,7 @@ export function Footer() {
               VaSii
             </Link>
             <p className="text-sm text-muted-foreground">
-              Tu destino de moda con más de 1,467 productos en 5 colecciones exclusivas.
+              Tu destino de moda con más  5 colecciones exclusivas.
             </p>
           </div>
 
@@ -92,6 +90,5 @@ export function Footer() {
           <p>&copy; {new Date().getFullYear()} VaSii Marketplace. Todos los derechos reservados.</p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 }
