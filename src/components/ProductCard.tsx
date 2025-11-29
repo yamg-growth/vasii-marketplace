@@ -20,72 +20,51 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
   };
 
   return (
-    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300">
-      <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+    <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-0 shadow-sm bg-background">
+      <div className="relative aspect-[3/4] overflow-hidden bg-muted/30">
         <img
           src={product.imageUrl}
           alt={product.subcategory}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => {
+            e.currentTarget.src = '/placeholder.svg';
+          }}
         />
-        {product.isPlus && (
-          <Badge className="absolute top-2 left-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white border-0">
-            Plus Size
-          </Badge>
-        )}
         {product.stock <= 3 && product.stock > 0 && (
-          <Badge className="absolute top-2 right-2 bg-destructive text-destructive-foreground">
-            ¡Últimas {product.stock}!
-          </Badge>
+          <div className="absolute top-3 right-3 bg-destructive text-destructive-foreground px-3 py-1 text-xs font-medium uppercase tracking-wider">
+            ÚLTIMAS UNIDADES
+          </div>
         )}
       </div>
       
-      <CardContent className="p-4 space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-semibold text-foreground line-clamp-2 flex-1">
+      <CardContent className="p-4 space-y-3">
+        <div className="space-y-1">
+          <h3 className="font-serif font-semibold text-foreground uppercase tracking-wide text-sm">
             {product.subcategory}
           </h3>
-          <Badge variant="outline" className="shrink-0 text-xs">
-            {product.size}
-          </Badge>
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">
+            Talla: {product.size}
+          </p>
         </div>
         
-        <div className="flex items-center justify-between">
-          <p className="text-2xl font-bold text-primary">
+        <div className="flex items-baseline justify-between">
+          <p className="text-2xl font-bold text-foreground">
             {formatPrice(product.price)}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground uppercase tracking-wider">
             Ref: {product.code}
           </p>
         </div>
-        
-        {collection && (
-          <Badge 
-            variant="secondary" 
-            className={`text-xs bg-gradient-to-r ${collection.color} text-white border-0`}
-          >
-            {collection.icon} {collection.name}
-          </Badge>
-        )}
       </CardContent>
       
-      <CardFooter className="p-4 pt-0 gap-2">
+      <CardFooter className="p-4 pt-0">
         <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          onClick={() => onViewDetails?.(product)}
-        >
-          <ShoppingBag className="h-4 w-4 mr-2" />
-          Ver detalles
-        </Button>
-        <Button
-          size="sm"
-          className="flex-1"
+          className="w-full bg-foreground text-background hover:bg-foreground/90 font-medium uppercase tracking-wider"
           onClick={handleWhatsAppClick}
         >
           <MessageCircle className="h-4 w-4 mr-2" />
-          Comprar
+          Comprar en WhatsApp
         </Button>
       </CardFooter>
     </Card>

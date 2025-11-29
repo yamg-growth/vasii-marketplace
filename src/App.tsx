@@ -9,7 +9,9 @@ import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
 import Collections from "./pages/Collections";
 import CollectionDetail from "./pages/CollectionDetail";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import { PromotionBanner } from "./components/PromotionBanner";
 
 const queryClient = new QueryClient();
 
@@ -19,13 +21,15 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PromotionBanner />
         <Header />
-        <main>
+        <main className="font-sans">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/catalogo" element={<Catalog />} />
             <Route path="/colecciones" element={<Collections />} />
             <Route path="/coleccion/:collectionId" element={<CollectionDetail />} />
+            <Route path="/admin" element={<Admin />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

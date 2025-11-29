@@ -9,15 +9,29 @@ let cachedProducts: Product[] | null = null;
 /**
  * Loads all products from inventory files
  * This function caches the parsed products for performance
+ * Priority: localStorage (uploaded CSV) > fallback to women-inventory.txt
  */
 export function loadAllProducts(): Product[] {
+  // Check if there are products in localStorage from CSV upload
+  const storedProducts = localStorage.getItem('vasii-products');
+  if (storedProducts) {
+    try {
+      const products = JSON.parse(storedProducts) as Product[];
+      console.log(`Loaded ${products.length} products from uploaded CSV`);
+      return products;
+    } catch (error) {
+      console.error('Error parsing stored products:', error);
+    }
+  }
+
+  // Fallback to cached products
   if (cachedProducts) {
     return cachedProducts;
   }
 
   const products: Product[] = [];
 
-  // Parse women inventory
+  // Parse women inventory as fallback
   if (womenInventoryText) {
     const womenProducts = parseInventoryFile(womenInventoryText);
     products.push(...womenProducts);
@@ -26,7 +40,7 @@ export function loadAllProducts(): Product[] {
   // Cache the results
   cachedProducts = products;
   
-  console.log(`Loaded ${products.length} products from inventory`);
+  console.log(`Loaded ${products.length} products from fallback inventory`);
   return products;
 }
 
