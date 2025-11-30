@@ -31,11 +31,18 @@ export function ProductCard({ product, onViewDetails }: ProductCardProps) {
             e.currentTarget.src = '/placeholder.svg';
           }}
         />
-        {product.stock <= 3 && product.stock > 0 && (
-          <div className="absolute top-3 right-3 bg-destructive text-destructive-foreground px-3 py-1 text-xs font-medium uppercase tracking-wider">
-            ÚLTIMAS UNIDADES
-          </div>
-        )}
+        <div className="absolute top-3 right-3 flex flex-col gap-2">
+          {product.isPlus && (
+            <div className="bg-primary text-primary-foreground px-3 py-1 text-xs font-medium uppercase tracking-wider">
+              CURVY
+            </div>
+          )}
+          {product.stock <= 3 && product.stock > 0 && (
+            <div className="bg-destructive text-destructive-foreground px-3 py-1 text-xs font-medium uppercase tracking-wider">
+              ÚLTIMAS UNIDADES
+            </div>
+          )}
+        </div>
       </div>
       
       <CardContent className="p-4 space-y-3">
