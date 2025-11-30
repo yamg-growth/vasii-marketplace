@@ -17,8 +17,10 @@ export function loadAllProducts(): Product[] {
   if (storedProducts) {
     try {
       const products = JSON.parse(storedProducts) as Product[];
-      console.log(`Loaded ${products.length} products from uploaded CSV`);
-      return products;
+      // Filter out INBOX products (only show classified products in public view)
+      const classifiedProducts = products.filter(p => p.collection !== 'inbox');
+      console.log(`Loaded ${classifiedProducts.length} classified products from uploaded CSV`);
+      return classifiedProducts;
     } catch (error) {
       console.error('Error parsing stored products:', error);
     }

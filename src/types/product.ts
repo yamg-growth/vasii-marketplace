@@ -19,7 +19,8 @@ export type Collection =
   | 'work-casual' 
   | 'curvy-edition' 
   | 'winter' 
-  | 'el-bazar';
+  | 'el-bazar'
+  | 'inbox'; // INBOX / SIN CLASIFICAR
 
 export interface CollectionConfig {
   id: Collection;
