@@ -12,62 +12,62 @@ export interface CSVRow {
 }
 
 /**
- * Parses a CSV line into a product object
+ * Parses a text line into a product object
+ * Format: NEW CODE: 21300 - Men Denim Shirts - Talla: XXL - Stock: 1 - Precio: $83,000 COP - URL: http://... - Fabric: 19%Polyester - Comentarios: EXISTE
  */
 export function parseCSVLine(line: string, lineNumber: number): Partial<Product> | null {
-  if (!line.trim() || lineNumber === 1) return null; // Skip empty lines and header
+  if (!line.trim() || line.startsWith('**') || line.startsWith('---') || line.startsWith('=')) {
+    return null; // Skip empty lines, headers, and separators
+  }
   
   try {
-    const parts = line.split(',');
+    // Check if line starts with "NEW CODE:"
+    if (!line.includes('NEW CODE:')) return null;
     
-    if (parts.length < 8) return null;
+    // Extract fields using regex and split
+    const codeMatch = line.match(/NEW CODE:\s*(\d+)/);
+    const subcategoryMatch = line.match(/NEW CODE:\s*\d+\s*-\s*([^-]+?)\s*-\s*Talla:/);
+    const sizeMatch = line.match(/Talla:\s*([^-]+?)\s*-\s*Stock:/);
+    const stockMatch = line.match(/Stock:\s*(\d+)/);
+    const priceMatch = line.match(/Precio:\s*\$?\s*([\d,]+)/);
+    const urlMatch = line.match(/URL:\s*(https?:\/\/[^\s]+)/);
+    const fabricMatch = line.match(/Fabric:\s*([^-]+?)(?:\s*-\s*Comentarios:|$)/);
     
-    const code = parts[0]?.trim();
-    const barCode = parts[1]?.trim();
-    const id = parts[3]?.trim();
-    const category = parts[4]?.trim();
-    const variety = parts[5]?.trim(); // Size
-    const fabric = parts[6]?.trim();
-    const priceStr = parts[7]?.trim();
-    const imageSource = parts[8]?.trim();
+    if (!codeMatch || !subcategoryMatch) return null;
     
-    if (!code || !id || !category) return null;
+    const code = codeMatch[1].trim();
+    const subcategory = subcategoryMatch[1].trim();
+    const size = sizeMatch ? sizeMatch[1].trim() : 'Única';
+    const stock = stockMatch ? parseInt(stockMatch[1]) : 1;
+    const priceStr = priceMatch ? priceMatch[1].trim() : '0';
+    const imageUrl = urlMatch ? urlMatch[1].trim() : '/placeholder.svg';
+    const fabric = fabricMatch ? fabricMatch[1].trim() : 'N/A';
     
-    // Parse price: "$ 69,000" -> 69000
+    // Parse price: "83,000" -> 83000
     const price = parseInt(priceStr.replace(/[$.]/g, '').replace(/,/g, '')) || 0;
-    
-    // Extract image URL from IMAGE_SOURCE if it contains http/https
-    let imageUrl = '';
-    if (imageSource) {
-      const urlMatch = imageSource.match(/https?:\/\/[^\s]+/);
-      if (urlMatch) {
-        imageUrl = urlMatch[0];
-      }
-    }
     
     return {
       id: code,
       code,
-      barCode,
-      category,
-      subcategory: category, // Will be manually classified
-      size: variety,
-      fabric: fabric || 'N/A',
+      category: subcategory,
+      subcategory,
+      size,
+      fabric,
       price,
-      imageUrl: imageUrl || '/placeholder.svg',
-      box: category,
-      stock: 1, // Default stock
+      imageUrl,
+      box: subcategory,
+      stock,
       collection: 'el-bazar', // Default, will be manually classified
-      isPlus: false
+      isPlus: subcategory.toLowerCase().includes('plus')
     };
   } catch (error) {
-    console.error('Error parsing CSV line:', lineNumber, error);
+    console.error('Error parsing line:', lineNumber, error);
     return null;
   }
 }
 
 /**
- * Parses entire CSV file content
+ * Parses entire text/CSV file content
  */
 export function parseCSVFile(fileContent: string): Partial<Product>[] {
   const lines = fileContent.split('\n');
