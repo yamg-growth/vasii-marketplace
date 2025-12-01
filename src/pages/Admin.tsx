@@ -77,17 +77,17 @@ export default function Admin() {
         id: p.id!,
         category: p.category!,
         subcategory: p.subcategory || p.category!,
-        variant: p.size || 'Única',
-        fabric: p.fabric || null,
+        size: p.size || 'Única',
+        details: p.fabric || null,
         price: p.price || 0,
-        image_url: p.imageUrl || '/placeholder.svg',
+        image: p.imageUrl || '/placeholder.svg',
         collection: p.collection || 'inbox'
       }));
 
       // Use upsert to insert or update existing products
       const { error } = await supabase
         .from('products')
-        .upsert(supabaseProducts, { onConflict: 'id' });
+        .upsert(supabaseProducts as any, { onConflict: 'id' }); // Type assertion porque las columnas reales son diferentes
 
       if (error) throw error;
 
