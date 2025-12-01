@@ -11,8 +11,9 @@ export interface CSVRow {
 }
 
 /**
- * REVERSE LOOKUP PARSING STRATEGY
- * Parses lines with flexible column detection for mixed inventories (Women, Men, Kids, Baby)
+ * Parses a TAB-SEPARATED line into a product object
+ * Format: ID \t CATEGORY \t SUBCATEGORY \t VARIANT \t FABRIC \t PRICE \t IMAGE_URL
+ * Columns: [0] ID, [1] CATEGORY, [2] SUBCATEGORY, [3] VARIANT (Talla), [4] FABRIC, [5] PRICE, [6] IMAGE_URL
  */
 export function parseCSVLine(line: string, lineNumber: number): Partial<Product> | null {
   if (!line.trim()) return null;
@@ -21,95 +22,38 @@ export function parseCSVLine(line: string, lineNumber: number): Partial<Product>
   if (!/^\d/.test(line.trim())) return null;
   
   try {
-    // Split por tabulación o coma
-    const columns = line.split(/[\t,]/).map(col => col.trim()).filter(col => col);
+    // Split por tabulación
+    const columns = line.split('\t').map(col => col.trim());
     
-    if (columns.length < 5) return null;
+    if (columns.length < 7) return null;
     
-    const id = columns[0];
-    const category = columns[1] || '';
+    const [id, category, subcategory, variant, fabric, priceRaw, imageUrlRaw] = columns;
     
     if (!id || !category) return null;
     
-    // REVERSE LOOKUP: Imagen es siempre la última columna con http
-    let imageUrl = '/placeholder.svg';
-    let imageIndex = -1;
-    for (let i = columns.length - 1; i >= 0; i--) {
-      if (columns[i].includes('http')) {
-        const urlMatch = columns[i].match(/(https?:\/\/[^\s\t,]+)/);
-        if (urlMatch) {
-          imageUrl = urlMatch[1];
-          imageIndex = i;
-          break;
-        }
-      }
-    }
+    // Limpiar precio: "$ 109,000" -> 109000
+    const priceStr = priceRaw.replace(/[$\s]/g, '').replace(/,/g, '');
+    const price = parseInt(priceStr) || 0;
     
-    // REVERSE LOOKUP: Precio es la columna con $ O la anterior a la imagen
-    let price = 0;
-    let priceIndex = -1;
-    for (let i = 0; i < columns.length; i++) {
-      if (columns[i].includes('$') || /^\d+[,\.]?\d*$/.test(columns[i].replace(/[$\s,]/g, ''))) {
-        const priceStr = columns[i].replace(/[$\s]/g, '').replace(/,/g, '');
-        const parsedPrice = parseInt(priceStr);
-        if (parsedPrice > 0) {
-          price = parsedPrice;
-          priceIndex = i;
-          break;
-        }
-      }
-    }
+    // Extraer URL con regex
+    const urlMatch = imageUrlRaw.match(/(https?:\/\/[^\s\t]+)/);
+    const imageUrl = urlMatch ? urlMatch[1].trim() : '/placeholder.svg';
     
-    // Si no encontramos precio, buscar la columna antes de la imagen
-    if (price === 0 && imageIndex > 0) {
-      const priceStr = columns[imageIndex - 1].replace(/[$\s]/g, '').replace(/,/g, '');
-      price = parseInt(priceStr) || 0;
-      priceIndex = imageIndex - 1;
-    }
-    
-    // Subcategoría (columna 2)
-    const subcategory = columns[2] || category;
-    
-    // TALLA Y DETALLES (lógica especial para MEN/KIDS/BABY vs WOMEN)
-    let size = 'Única';
-    let details = '';
-    const isMenKidsBaby = /men|kid|teen|baby/i.test(category);
-    
-    if (isMenKidsBaby) {
-      // Para hombres/niños, la talla puede estar desplazada
-      // Buscar columna corta con patrón de talla
-      const sizePatterns = /^(XXS|XS|S|M|L|XL|XXL|XXXL|\d+Y|\d+-\d+M|\d+)$/i;
-      for (let i = 3; i < columns.length; i++) {
-        if (i === priceIndex || i === imageIndex) continue;
-        if (sizePatterns.test(columns[i])) {
-          size = columns[i];
-          break;
-        }
-      }
-      // Unir resto de texto en details
-      const detailsParts = columns.slice(3, priceIndex > 0 ? priceIndex : imageIndex);
-      details = detailsParts.filter(p => p !== size).join(' - ');
-    } else {
-      // Para mujeres: estándar
-      size = columns[3] || 'Única';
-      details = columns.slice(4, priceIndex > 0 ? priceIndex : imageIndex).join(' - ');
-    }
-    
-    // Detectar si es Plus Size
-    const isPlus = /\b(XL|XXL|XXXL|PLUS|CURVY)\b/i.test(size);
+    // Detectar si es Plus Size basado en talla
+    const isPlus = /\b(XL|XXL|XXXL|PLUS|CURVY)\b/i.test(variant);
     
     return {
       id,
       code: id,
       category,
       subcategory: subcategory || category,
-      size,
-      fabric: details || 'N/A',
+      size: variant || 'Única',
+      fabric: fabric || 'N/A',
       price,
       imageUrl,
       box: subcategory || category,
-      stock: 1,
-      collection: null, // NULL = INBOX (sin clasificar)
+      stock: 1, // Default stock
+      collection: 'inbox', // Default to INBOX, will be manually classified
       isPlus
     };
   } catch (error) {

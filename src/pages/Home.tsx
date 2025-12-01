@@ -5,23 +5,22 @@ import { ProductCard } from '@/components/ProductCard';
 import { Button } from '@/components/ui/button';
 import { loadAllProducts } from '@/data/loadProducts';
 import { Product } from '@/types/product';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Home() {
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
 
   useEffect(() => {
-    loadAllProducts().then(products => {
-      setAllProducts(products);
-      setFeaturedProducts(products.slice(0, 6));
-      setBestSellers(products.slice(0, 8));
-    });
+    // Load products from inventory
+    const allProducts = loadAllProducts();
+    setFeaturedProducts(allProducts.slice(0, 6));
+    setBestSellers(allProducts.slice(0, 8));
   }, []);
 
   const getCollectionProductCount = (collectionId: string) => {
+    const allProducts = loadAllProducts();
     return allProducts.filter(p => p.collection === collectionId).length;
   };
 
