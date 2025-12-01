@@ -3,8 +3,9 @@ import { useParams, Link } from 'react-router-dom';
 import { COLLECTIONS } from '@/data/collections';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductFilters, ProductFilters as Filters } from '@/components/ProductFilters';
-import { getProductsByCollection, getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/loadProducts';
-import { Product, FilterOptions } from '@/types/product';
+import { useProducts } from '@/hooks/useProducts';
+import { getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/loadProducts';
+import { FilterOptions } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Filter, MessageCircle, ArrowLeft } from 'lucide-react';
@@ -13,10 +14,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 export default function CollectionDetail() {
   const { collectionId } = useParams<{ collectionId: string }>();
   const collection = COLLECTIONS.find(c => c.id === collectionId);
+  const { products } = useProducts();
   
   const collectionProducts = useMemo(() => 
-    getProductsByCollection(collectionId || ''),
-    [collectionId]
+    products.filter(p => p.collection === collectionId),
+    [products, collectionId]
   );
 
   const [filters, setFilters] = useState<Filters>({
