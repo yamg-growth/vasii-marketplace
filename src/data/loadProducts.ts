@@ -1,64 +1,86 @@
-import { Product } from '@/types/product';
-import { parseInventoryFile } from '@/utils/productParser';
-
-// Import the inventory file content
-import womenInventoryText from './women-inventory.txt?raw';
+import { Product, Collection } from '@/types/product';
+import { supabase } from '@/integrations/supabase/client';
 
 let cachedProducts: Product[] | null = null;
 
 /**
- * Loads all products from inventory files
- * This function caches the parsed products for performance
- * Priority: localStorage (uploaded CSV) > fallback to women-inventory.txt
+ * Loads all products from Supabase
+ * Falls back to cached products if Supabase fails
+ * Filters out INBOX products (only show classified products in public view)
  */
-export function loadAllProducts(): Product[] {
-  // Check if there are products in localStorage from CSV upload
-  const storedProducts = localStorage.getItem('vasii-products');
-  if (storedProducts) {
-    try {
-      const products = JSON.parse(storedProducts) as Product[];
-      // Filter out INBOX products (only show classified products in public view)
-      const classifiedProducts = products.filter(p => p.collection !== 'inbox');
-      console.log(`Loaded ${classifiedProducts.length} classified products from uploaded CSV`);
-      return classifiedProducts;
-    } catch (error) {
-      console.error('Error parsing stored products:', error);
+export async function loadAllProducts(): Promise<Product[]> {
+  try {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .neq('collection', 'inbox')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Map Supabase data to Product format
+    const products: Product[] = (data || []).map(item => ({
+      id: item.id,
+      code: item.id,
+      barCode: item.id,
+      category: item.category,
+      subcategory: item.subcategory,
+      size: item.variant,
+      fabric: item.fabric || 'N/A',
+      price: item.price,
+      imageUrl: item.image_url,
+      box: item.subcategory,
+      stock: 1,
+      collection: item.collection as Collection,
+      isPlus: /\b(XL|XXL|XXXL|PLUS|CURVY)\b/i.test(item.variant)
+    }));
+
+    // Cache the results
+    cachedProducts = products;
+    
+    console.log(`Loaded ${products.length} classified products from Supabase`);
+    return products;
+  } catch (error) {
+    console.error('Error loading products from Supabase:', error);
+    
+    // Fallback to cached products if available
+    if (cachedProducts) {
+      console.log('Using cached products');
+      return cachedProducts;
     }
+    
+    return [];
   }
+}
 
-  // Fallback to cached products
-  if (cachedProducts) {
-    return cachedProducts;
-  }
-
-  const products: Product[] = [];
-
-  // Parse women inventory as fallback
-  if (womenInventoryText) {
-    const womenProducts = parseInventoryFile(womenInventoryText);
-    products.push(...womenProducts);
-  }
-
-  // Cache the results
-  cachedProducts = products;
-  
-  console.log(`Loaded ${products.length} products from fallback inventory`);
-  return products;
+/**
+ * Synchronous version that returns cached products immediately
+ * Use this for components that can't handle async
+ */
+export function loadAllProductsSync(): Product[] {
+  return cachedProducts || [];
 }
 
 /**
  * Get products by collection
  */
-export function getProductsByCollection(collection: string): Product[] {
-  const allProducts = loadAllProducts();
+export async function getProductsByCollection(collection: string): Promise<Product[]> {
+  const allProducts = await loadAllProducts();
   return allProducts.filter(p => p.collection === collection);
+}
+
+/**
+ * Synchronous version for immediate access
+ */
+export function getProductsByCollectionSync(collection: string): Product[] {
+  return loadAllProductsSync().filter(p => p.collection === collection);
 }
 
 /**
  * Get unique categories from products
  */
 export function getUniqueCategories(): string[] {
-  const allProducts = loadAllProducts();
+  const allProducts = loadAllProductsSync();
   return Array.from(new Set(allProducts.map(p => p.category)));
 }
 
@@ -66,7 +88,7 @@ export function getUniqueCategories(): string[] {
  * Get unique subcategories from products
  */
 export function getUniqueSubcategories(): string[] {
-  const allProducts = loadAllProducts();
+  const allProducts = loadAllProductsSync();
   return Array.from(new Set(allProducts.map(p => p.subcategory)));
 }
 
@@ -74,7 +96,7 @@ export function getUniqueSubcategories(): string[] {
  * Get unique sizes from products
  */
 export function getUniqueSizes(): string[] {
-  const allProducts = loadAllProducts();
+  const allProducts = loadAllProductsSync();
   return Array.from(new Set(allProducts.map(p => p.size))).sort();
 }
 
@@ -82,7 +104,7 @@ export function getUniqueSizes(): string[] {
  * Get price range from products
  */
 export function getPriceRange(): [number, number] {
-  const allProducts = loadAllProducts();
+  const allProducts = loadAllProductsSync();
   if (allProducts.length === 0) return [0, 0];
   
   const prices = allProducts.map(p => p.price);
