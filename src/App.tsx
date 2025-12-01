@@ -14,7 +14,6 @@ import Admin from "./pages/Admin";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { PromotionBanner } from "./components/PromotionBanner";
-import AdminUpload from "./pages/AdminUpload";
 
 const queryClient = new QueryClient();
 
@@ -27,7 +26,7 @@ const App = () => (
         <Routes>
           {/* Login route (no layout) */}
           <Route path="/login" element={<Login />} />
-          <Route path="/admin-upload" element={<AdminUpload />} />
+         
           {/* Protected admin route (no public layout) */}
           <Route path="/admin" element={
             <ProtectedRoute>
