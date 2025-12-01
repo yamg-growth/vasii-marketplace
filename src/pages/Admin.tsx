@@ -7,58 +7,33 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Package, Inbox, LogOut, Save, Upload } from 'lucide-react';
+import { ArrowLeft, Package, Inbox, LogOut, Save } from 'lucide-react';
 import { COLLECTIONS } from '@/data/collections';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
 
 export default function Admin() {
   const navigate = useNavigate();
   const [allProducts, setAllProducts] = useState<Partial<Product>[]>([]);
   const [loadedFileName, setLoadedFileName] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
-    loadProductsFromSupabase();
-  }, []);
-
-  const loadProductsFromSupabase = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Map Supabase data to Product format
-      const products: Partial<Product>[] = (data || []).map(item => ({
-        id: item.id,
-        code: item.id,
-        category: item.category,
-        subcategory: item.subcategory,
-        size: item.variant,
-        fabric: item.fabric || 'N/A',
-        price: item.price,
-        imageUrl: item.image_url,
-        box: item.subcategory,
-        stock: 1,
-        collection: item.collection as Collection,
-        isPlus: /\b(XL|XXL|XXXL|PLUS|CURVY)\b/i.test(item.variant)
-      }));
-
-      setAllProducts(products);
-    } catch (error) {
-      console.error('Error loading products:', error);
-      toast.error('Error al cargar productos de Supabase');
+    // Load existing products from localStorage
+    const stored = localStorage.getItem('vasii-products');
+    if (stored) {
+      try {
+        const products = JSON.parse(stored);
+        setAllProducts(products);
+      } catch (e) {
+        console.error('Error loading products:', e);
+      }
     }
-  };
+  }, []);
 
   const handleFileLoaded = (content: string, filename: string) => {
     const products = parseCSVFile(content);
     setLoadedFileName(filename);
     setAllProducts(prev => [...prev, ...products]);
-    toast.success(`${products.length} productos cargados en INBOX. Haz clic en "Subir a Supabase" para guardarlos.`);
+    toast.success(`${products.length} productos cargados en INBOX`);
   };
 
   const handleClassify = (productId: string, collection: Collection) => {
@@ -67,38 +42,13 @@ export default function Admin() {
         p.id === productId ? { ...p, collection } : p
       )
     );
+    toast.success('Producto movido exitosamente');
   };
 
-  const handleUploadToSupabase = async () => {
-    setIsUploading(true);
-    try {
-      // Map products to Supabase schema
-      const supabaseProducts = allProducts.map(p => ({
-        id: p.id!,
-        category: p.category!,
-        subcategory: p.subcategory || p.category!,
-        size: p.size || 'Única',
-        details: p.fabric || null,
-        price: p.price || 0,
-        image: p.imageUrl || '/placeholder.svg',
-        collection: p.collection || 'inbox'
-      }));
-
-      // Use upsert to insert or update existing products
-      const { error } = await supabase
-        .from('products')
-        .upsert(supabaseProducts as any, { onConflict: 'id' }); // Type assertion porque las columnas reales son diferentes
-
-      if (error) throw error;
-
-      toast.success(`${supabaseProducts.length} productos subidos a Supabase correctamente`);
-      await loadProductsFromSupabase(); // Reload from Supabase
-    } catch (error) {
-      console.error('Error uploading to Supabase:', error);
-      toast.error('Error al subir productos a Supabase');
-    } finally {
-      setIsUploading(false);
-    }
+  const handleSaveChanges = () => {
+    localStorage.setItem('vasii-products', JSON.stringify(allProducts));
+    localStorage.setItem('vasii-products-timestamp', Date.now().toString());
+    toast.success('Cambios guardados');
   };
 
   const handleLogout = () => {
@@ -125,9 +75,9 @@ export default function Admin() {
               </div>
             </div>
             <div className="flex gap-2">
-              <Button onClick={handleUploadToSupabase} disabled={isUploading || allProducts.length === 0}>
-                <Upload className="h-4 w-4 mr-2" />
-                {isUploading ? 'Subiendo...' : 'Subir a Supabase'}
+              <Button onClick={handleSaveChanges}>
+                <Save className="h-4 w-4 mr-2" />
+                Guardar Cambios
               </Button>
               <Button variant="outline" onClick={handleLogout}>
                 <LogOut className="h-4 w-4 mr-2" />

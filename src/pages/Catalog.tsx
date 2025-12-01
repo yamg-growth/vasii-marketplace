@@ -1,15 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ProductCard } from '@/components/ProductCard';
 import { ProductFilters, ProductFilters as Filters } from '@/components/ProductFilters';
-import { useProducts } from '@/hooks/useProducts';
-import { getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/loadProducts';
-import { FilterOptions } from '@/types/product';
+import { loadAllProducts, getUniqueCategories, getUniqueSubcategories, getUniqueSizes, getPriceRange } from '@/data/loadProducts';
+import { Product, FilterOptions } from '@/types/product';
 import { Button } from '@/components/ui/button';
 import { Filter, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 export default function Catalog() {
-  const { products, loading } = useProducts();
+  const [products] = useState<Product[]>(loadAllProducts());
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     subcategories: [],

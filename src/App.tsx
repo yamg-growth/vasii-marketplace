@@ -26,7 +26,7 @@ const App = () => (
         <Routes>
           {/* Login route (no layout) */}
           <Route path="/login" element={<Login />} />
-         
+          
           {/* Protected admin route (no public layout) */}
           <Route path="/admin" element={
             <ProtectedRoute>
