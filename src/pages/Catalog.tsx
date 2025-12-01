@@ -8,23 +8,43 @@ import { Filter, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 export default function Catalog() {
-  const [products] = useState<Product[]>(loadAllProducts());
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     subcategories: [],
     sizes: [],
-    priceRange: getPriceRange(),
+    priceRange: [0, 0],
+    collections: []
+  });
+  const [availableFilters, setAvailableFilters] = useState<FilterOptions>({
+    categories: [],
+    subcategories: [],
+    sizes: [],
+    priceRange: [0, 0],
     collections: []
   });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const availableFilters: FilterOptions = useMemo(() => ({
-    categories: getUniqueCategories(),
-    subcategories: getUniqueSubcategories(),
-    sizes: getUniqueSizes(),
-    priceRange: getPriceRange(),
-    collections: []
-  }), []);
+  useEffect(() => {
+    const loadData = async () => {
+      const allProducts = await loadAllProducts();
+      const priceRange = await getPriceRange();
+      
+      setProducts(allProducts);
+      setFilters(prev => ({ ...prev, priceRange }));
+      setAvailableFilters({
+        categories: await getUniqueCategories(),
+        subcategories: await getUniqueSubcategories(),
+        sizes: await getUniqueSizes(),
+        priceRange,
+        collections: []
+      });
+      setIsLoading(false);
+    };
+    
+    loadData();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
@@ -55,6 +75,25 @@ export default function Catalog() {
   const handleFilterChange = (newFilters: Partial<Filters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
+
+  const resetFilters = async () => {
+    const priceRange = await getPriceRange();
+    setFilters({
+      categories: [],
+      subcategories: [],
+      sizes: [],
+      priceRange,
+      collections: []
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Cargando productos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -115,16 +154,7 @@ export default function Catalog() {
                 <p className="text-muted-foreground mb-6">
                   Intenta ajustar tus filtros para ver más resultados
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setFilters({
-                    categories: [],
-                    subcategories: [],
-                    sizes: [],
-                    priceRange: getPriceRange(),
-                    collections: []
-                  })}
-                >
+                <Button variant="outline" onClick={resetFilters}>
                   Limpiar filtros
                 </Button>
               </div>
