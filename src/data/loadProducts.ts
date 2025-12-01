@@ -19,21 +19,24 @@ export async function loadAllProducts(): Promise<Product[]> {
     if (error) throw error;
 
     // Map Supabase data to Product format
-    const products: Product[] = (data || []).map(item => ({
-      id: item.id,
-      code: item.id,
-      barCode: item.id,
-      category: item.category,
-      subcategory: item.subcategory,
-      size: item.variant,
-      fabric: item.fabric || 'N/A',
-      price: item.price,
-      imageUrl: item.image_url,
-      box: item.subcategory,
-      stock: 1,
-      collection: item.collection as Collection,
-      isPlus: /\b(XL|XXL|XXXL|PLUS|CURVY)\b/i.test(item.variant)
-    }));
+    const products: Product[] = (data || []).map(item => {
+      const row = item as any; // Type assertion porque las columnas reales son diferentes
+      return {
+        id: row.id,
+        code: row.id,
+        barCode: row.id,
+        category: row.category,
+        subcategory: row.subcategory,
+        size: row.size,
+        fabric: row.details || 'N/A',
+        price: row.price,
+        imageUrl: row.image,
+        box: row.subcategory,
+        stock: 1,
+        collection: row.collection as Collection,
+        isPlus: /\b(XL|XXL|XXXL|PLUS|CURVY)\b/i.test(row.size)
+      };
+    });
 
     // Cache the results
     cachedProducts = products;
