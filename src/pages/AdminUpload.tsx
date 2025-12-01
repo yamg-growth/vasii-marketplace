@@ -41,9 +41,15 @@ const parseInventoryInput = (text: string): ProductData[] => {
     if (cols.length < 3) return null;
 
     // Busca la imagen (última columna con http) y el precio
-    const imageIndex = cols.findLastIndex(c => c.startsWith('http'));
+    let imageIndex = -1;
+    for (let i = cols.length - 1; i >= 0; i--) {
+      if (cols[i].startsWith('http')) {
+        imageIndex = i;
+        break;
+      }
+    }
     const image = imageIndex !== -1 ? cols[imageIndex] : '';
-    const priceRaw = cols.find(c => c.includes('$')) || cols[imageIndex - 1] || '0';
+    const priceRaw = cols.find(c => c.includes('$')) || (imageIndex > 0 ? cols[imageIndex - 1] : '') || '0';
     const price = parseInt(priceRaw.replace(/[^0-9]/g, '')) || 0;
 
     let id = parseInt(cols[0]);
@@ -114,9 +120,21 @@ export default function AdminUpload() {
     setLoading(true);
 
     try {
+      // Map ProductData to Supabase schema
+      const supabaseProducts = preview.map(p => ({
+        id: String(p.id),
+        category: p.category,
+        subcategory: p.subcategory,
+        variant: p.size,
+        fabric: p.details,
+        price: p.price,
+        image_url: p.image,
+        collection: p.collection
+      }));
+
       const { error } = await supabase
         .from('products')
-        .upsert(preview, { onConflict: 'id' });
+        .upsert(supabaseProducts, { onConflict: 'id' });
 
       if (error) throw error;
 
