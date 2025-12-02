@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { COLLECTIONS } from '@/data/collections';
 import { ProductCard } from '@/components/ProductCard';
@@ -14,27 +14,51 @@ export default function CollectionDetail() {
   const { collectionId } = useParams<{ collectionId: string }>();
   const collection = COLLECTIONS.find(c => c.id === collectionId);
   
-  const collectionProducts = useMemo(() => 
-    getProductsByCollection(collectionId || ''),
-    [collectionId]
-  );
-
+  const [collectionProducts, setCollectionProducts] = useState<Product[]>([]);
+  const [availableFilters, setAvailableFilters] = useState<FilterOptions>({
+    categories: [],
+    subcategories: [],
+    sizes: [],
+    priceRange: [0, 0],
+    collections: []
+  });
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     subcategories: [],
     sizes: [],
-    priceRange: getPriceRange(),
+    priceRange: [0, 0],
     collections: []
   });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const availableFilters: FilterOptions = useMemo(() => ({
-    categories: getUniqueCategories(),
-    subcategories: getUniqueSubcategories(),
-    sizes: getUniqueSizes(),
-    priceRange: getPriceRange(),
-    collections: []
-  }), []);
+  useEffect(() => {
+    const loadData = async () => {
+      if (!collectionId) return;
+      
+      const [prods, cats, subcats, sizes, priceRange] = await Promise.all([
+        getProductsByCollection(collectionId),
+        getUniqueCategories(),
+        getUniqueSubcategories(),
+        getUniqueSizes(),
+        getPriceRange()
+      ]);
+      
+      setCollectionProducts(prods);
+      setAvailableFilters({
+        categories: cats,
+        subcategories: subcats,
+        sizes: sizes,
+        priceRange: priceRange,
+        collections: []
+      });
+      setFilters(prev => ({
+        ...prev,
+        priceRange: priceRange
+      }));
+    };
+    
+    loadData();
+  }, [collectionId]);
 
   const filteredProducts = useMemo(() => {
     return collectionProducts.filter(product => {
@@ -188,7 +212,7 @@ export default function CollectionDetail() {
                     categories: [],
                     subcategories: [],
                     sizes: [],
-                    priceRange: getPriceRange(),
+                    priceRange: availableFilters.priceRange,
                     collections: []
                   })}
                 >
