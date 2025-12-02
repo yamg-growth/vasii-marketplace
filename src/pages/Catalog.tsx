@@ -8,23 +8,49 @@ import { Filter, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 
 export default function Catalog() {
-  const [products] = useState<Product[]>(loadAllProducts());
+  const [products, setProducts] = useState<Product[]>([]);
+  const [availableFilters, setAvailableFilters] = useState<FilterOptions>({
+    categories: [],
+    subcategories: [],
+    sizes: [],
+    priceRange: [0, 0],
+    collections: []
+  });
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     subcategories: [],
     sizes: [],
-    priceRange: getPriceRange(),
+    priceRange: [0, 0],
     collections: []
   });
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  const availableFilters: FilterOptions = useMemo(() => ({
-    categories: getUniqueCategories(),
-    subcategories: getUniqueSubcategories(),
-    sizes: getUniqueSizes(),
-    priceRange: getPriceRange(),
-    collections: []
-  }), []);
+  useEffect(() => {
+    const loadData = async () => {
+      const [prods, cats, subcats, sizes, priceRange] = await Promise.all([
+        loadAllProducts(),
+        getUniqueCategories(),
+        getUniqueSubcategories(),
+        getUniqueSizes(),
+        getPriceRange()
+      ]);
+      
+      setProducts(prods);
+      setAvailableFilters({
+        categories: cats,
+        subcategories: subcats,
+        sizes: sizes,
+        priceRange: priceRange,
+        collections: []
+      });
+      setFilters(prev => ({
+        ...prev,
+        priceRange: priceRange
+      }));
+    };
+    
+    loadData();
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
@@ -121,7 +147,7 @@ export default function Catalog() {
                     categories: [],
                     subcategories: [],
                     sizes: [],
-                    priceRange: getPriceRange(),
+                    priceRange: availableFilters.priceRange,
                     collections: []
                   })}
                 >

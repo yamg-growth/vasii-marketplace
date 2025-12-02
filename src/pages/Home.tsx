@@ -11,18 +11,23 @@ import { Link } from 'react-router-dom';
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [bestSellers, setBestSellers] = useState<Product[]>([]);
+  const [productCounts, setProductCounts] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    // Load products from inventory
-    const allProducts = loadAllProducts();
-    setFeaturedProducts(allProducts.slice(0, 6));
-    setBestSellers(allProducts.slice(0, 8));
+    const loadData = async () => {
+      const allProducts = await loadAllProducts();
+      setFeaturedProducts(allProducts.slice(0, 6));
+      setBestSellers(allProducts.slice(0, 8));
+      
+      const counts: Record<string, number> = {};
+      COLLECTIONS.forEach(col => {
+        counts[col.id] = allProducts.filter(p => p.collection === col.id).length;
+      });
+      setProductCounts(counts);
+    };
+    
+    loadData();
   }, []);
-
-  const getCollectionProductCount = (collectionId: string) => {
-    const allProducts = loadAllProducts();
-    return allProducts.filter(p => p.collection === collectionId).length;
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -89,7 +94,7 @@ export default function Home() {
               <CollectionCard
                 key={collection.id}
                 collection={collection}
-                productCount={getCollectionProductCount(collection.id)}
+                productCount={productCounts[collection.id] || 0}
               />
             ))}
           </div>
